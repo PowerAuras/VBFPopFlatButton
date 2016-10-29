@@ -23,7 +23,39 @@
 @implementation VBFPopFlatButton
 
 @dynamic linesColor;
+- (BOOL)pointInside:(CGPoint)point withEvent:(UIEvent*)event{
+    CGRect bounds = self.bounds;
+    CGFloat widthDelta = 44.0- bounds.size.width;
+    CGFloat heightDelta = 44.0- bounds.size.height;
+    bounds = CGRectInset(bounds, -0.5* widthDelta, -0.5* heightDelta);//注意这里是负数，扩大了之前的bounds的范围
+    return CGRectContainsPoint(bounds, point);
+}
+-(void)touchDown:(UIButton *)but{
+    [self.layer removeAnimationForKey:@"animateTransform"];
+    CABasicAnimation *theAnimation;
+    theAnimation=[CABasicAnimation animationWithKeyPath:@"transform.scale"];
+    theAnimation.duration=0.1;
+    theAnimation.fromValue = [NSNumber numberWithFloat:1];
+    theAnimation.toValue = [NSNumber numberWithFloat:0.9];
+    theAnimation.removedOnCompletion = NO;
+    theAnimation.fillMode = kCAFillModeForwards;
+    [self.layer addAnimation:theAnimation forKey:@"animateTransform"];
+    
+}
+-(void)touchCancel:(UIButton *)but{
+    CABasicAnimation *theAnimation;
+    theAnimation=[CABasicAnimation animationWithKeyPath:@"transform.scale"];
+    theAnimation.duration=0.1;
+    theAnimation.fromValue = [NSNumber numberWithFloat:.9];
+    theAnimation.toValue = [NSNumber numberWithFloat:1];
+    theAnimation.removedOnCompletion = NO;
+    theAnimation.fillMode = kCAFillModeForwards;
+    [self.layer addAnimation:theAnimation forKey:@"animateTransform"];
+}
 
+-(void)touchUpInside:(UIButton *)but{
+    [self.layer removeAnimationForKey:@"animateTransform"];
+}
 - (instancetype)initWithFrame:(CGRect)frame {
     return [self initWithFrame:frame buttonType:buttonDefaultType buttonStyle:buttonPlainStyle animateToInitialState:YES];
 }
@@ -57,6 +89,10 @@
 }
 
 - (void) commonSetup {
+    [self addTarget:self action:@selector(touchDown:) forControlEvents:(UIControlEventTouchDown)];
+    [self addTarget:self action:@selector(touchUpInside:) forControlEvents:(UIControlEventTouchUpInside)];
+    [self addTarget:self action:@selector(touchCancel:) forControlEvents:(UIControlEventTouchUpOutside|UIControlEventTouchCancel)];
+
     _firstSegment = [[VBFDoubleSegment alloc]initWithLength:self.frame.size.width
                                                   thickness:self.lineThickness
                                                      radius:self.lineRadius
